@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>POPULATION MAP OF KENYA</title>
+     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+    <style>
+      body {
+        margin: 0;
+      }
+      #map {
+        height: 100vh;
+        width: 100vw;
+        position: relative;
+        z-index: 1;
+      }
+      .sidebar {
+        
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        z-index: 2;
+        height: 30vh;
+        padding: 0px;
+        color: aliceblue;
+        margin: 0px;
+        border-radius: 0px;
+      }
+      .sidebar p {
+        color: black;
+        font-weight: 500;
+        color: #fff;
+        text-align: center;
+        font-size: 30px;
+      }
+      .sidebar input {
+        border-radius: 0px;
+        padding: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div class="sidebar">
+      <div>
+        <p>County</p>
+        <input type="text" name="county" id="county" value="" />
+      </div>
+      <div>
+        <p>Population</p>
+        <input type="text" name="population" id="pop" value="" />
+      </div>
+    </div>
+
+    <script>
+      
+      var position = [0.614058, 37.862076];
+      var mymap = L.map('map').setView([0.0483656,37.6261137], 7);
+      const county = document.getElementById("county");
+      const population = document.getElementById("pop");
+
+      L.tileLayer(
+        "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}",
+        
+        {
+          attribution:
+            'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+          maxZoom: 18,
+          id: "mapbox.streets",
+          accessToken:
+            "pk.eyJ1IjoiZXZhbnNrYXJhbmphIiwiYSI6ImNqdm5yNjF6ODFsaWk0OXJ0NzhwcXF1NHYifQ.LlDfnOCws33cmI5NmYh3nA"
+        }
+      ).addTo(mymap);
+      const el = `<div><p>County</p><input type="text" name="county" id="county" value="" /></div><div><p>Population</p><input type="text" name="population" id="pop" value="34122" /></div></div>`;
+      function highlight(layer) {
+        population.value = layer.feature.properties.total_pop2019;
+        county.value = layer.feature.properties.Name;
+      }
+
+      function onEachFeature(feature, layer) {
+        
+        if (feature.properties && feature.properties.Name) {
+          layer.on({
+            mouseover: function(e) {
+              highlight(e.target);
+            }
+          });
+            layer.bindPopup("<h3>County:</h3>"+feature.properties.Name+"<br><p>Population:</p>"+feature.properties.total_pop2019);
+        }
+      }
+
+      let xhr = new XMLHttpRequest();
+      xhr.open("GET", "ke-counties.geojson");
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.responseType = "json";
+      xhr.onload = function() {
+        if (xhr.status !== 200) return xhr.response;
+
+        L.geoJSON(xhr.response, {
+          onEachFeature: onEachFeature,
+          style:{
+                fillOpacity:0,
+                color:"black",
+                strokeDasharray:"false",
+                fontWeight:"1",
+            }
+             
+        }).addTo(mymap);
+      };
+      xhr.send();
+    </script>
+  </body>
+</html>
